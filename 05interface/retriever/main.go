@@ -27,6 +27,7 @@ type Poster interface {
 	Post(url string,form map[string]string) string
 }
 func post(poster Poster){
+	//此时，调用接口的Post方法（一般就是传递参数），在接口绑定类型后，就会调用类型的Post方法（包括了具体的逻辑操作）
 	poster.Post("http://www.imooc.com",map[string]string{
 		"name": "ccmouse",
 		"course":"golang",
@@ -36,6 +37,7 @@ func post(poster Poster){
 
 //组合接口
 type RetrieverPoster interface{
+	//这是简写的方式
 	Retriever
 	Poster
 }
@@ -44,7 +46,7 @@ type RetrieverPoster interface{
 const url = "http://www.imooc.com"
 func session(s RetrieverPoster) string{
 	s.Post(url,map[string]string{
-		"contents":"another faked imooc com",
+		"contents":"another faked imooc com",//这里该接口绑定的类型的contents的值，接口
 	})
 	return s.Get(url)
 }
@@ -55,9 +57,11 @@ func download(r Retriever) string{
 }
 
 func inspect(r Retriever){
-	fmt.Printf("%T --- %v\n",r,r)
+	fmt.Println("Inspecting",r)
+	fmt.Printf("> %T --- %v\n",r,r)
+	fmt.Print("> Type switch:")
 	switch v := r.(type) {   //r.()类型断言
-	case mock.Retriever:
+	case *mock.Retriever:
 		fmt.Println("Contents:", v.Contents)
 	case *real.Retriever:
 		fmt.Println("UserAgent:", v.UserAgent)
@@ -66,7 +70,8 @@ func inspect(r Retriever){
 
 func main() {
 	var r Retriever//r 可被赋值为不同类型或指针的实现接口方法的类型
-	r = mock.Retriever{"this is a fake com"}
+	retriever := mock.Retriever{"this is a fake com"}
+	r = &retriever
 	//fmt.Printf("%T --- %v\n",r,r)
 	inspect(r)
 
@@ -79,12 +84,14 @@ func main() {
 	inspect(r)
 
 	//type assertion类型断言
-	mockRetriever, ok := r.(mock.Retriever)
+	mockRetriever, ok := r.(*mock.Retriever)
 	if ok {
 		fmt.Println(mockRetriever.Contents)
 	}else{
 		fmt.Println("not a mock retriever")
 	}
 
-	//dfmt.Println(download(r))
+	fmt.Println("Try a session")
+
+	fmt.Println(session(&retriever))
 }

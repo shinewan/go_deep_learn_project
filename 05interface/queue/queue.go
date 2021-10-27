@@ -7,6 +7,7 @@ package queue
  */
 
 type Queue []interface{}
+//type Queue []int  这就是控制类型为：int
 
 func (q *Queue) Push(v interface{}){
 	*q = append(*q,v)
